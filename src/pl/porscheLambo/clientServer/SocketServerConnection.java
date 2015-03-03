@@ -30,7 +30,6 @@ public class SocketServerConnection implements Runnable {
 		this.username = username;
 	}
 
-	
 	@Override
 	public void run() {		
 		while(true) {
@@ -52,25 +51,23 @@ public class SocketServerConnection implements Runnable {
 					connections = Singleton.getInstance().getAllUsernames();
 					message = sendConnections(connections);
 					
-				}else {
+				} else {
 					username = firstPartMsg;
 					message = Singleton.getInstance().getUsernameBySocket(connection) + secondPartMsg;
 				}
-				//log.info("Message from the " + username+ " with local address " + connection.getLocalAddress() + ": " + message);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			
 		}
+
 		return message;
 	}
 	
 	public void splitter(String msg) {
 		String[] messageParts = message.split(":");
+
 		firstPartMsg = messageParts[0];
-		if(messageParts[0].equals("connections")) {
-			
-		} else {
+		if(!messageParts[0].equals("connections")) {
 			secondPartMsg = messageParts[1];
 		}
 		
@@ -78,30 +75,26 @@ public class SocketServerConnection implements Runnable {
 	}
 	
 	public void sendResponse() {
-		//String[] messageParts = message.split(":");
-		//username = messageParts[0];
-		//message = messageParts[1];
-		//log.info("Username: " + username + "Message: " + message);
 		if(message != null) {
 			log.info(message);
-				try {
-					serverMsg = new BufferedWriter(new OutputStreamWriter(Singleton.getInstance().getUserSocket(username).getOutputStream()));
-					//serverMsg.write(Singleton.getInstance().getUsernameBySocket(connection) + ":" + message);
-					serverMsg.write(message);
-					serverMsg.newLine();
-					serverMsg.flush();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+
+			try {
+				serverMsg = new BufferedWriter(new OutputStreamWriter(Singleton.getInstance().getUserSocket(username).getOutputStream()));
+
+				serverMsg.write(message);
+				serverMsg.newLine();
+				serverMsg.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	public String sendConnections(List<String> connections) {
-		String result = null;
-		result = "connections:" + String.join(":", connections);
-		log.info(result);
-		return result;
+		String result = "connections:" + String.join(":", connections);
 		
+		log.info(result);
+
+		return result;
 	}
-	
 }
