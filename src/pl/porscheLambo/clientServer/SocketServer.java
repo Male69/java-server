@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 public class SocketServer {
 
-
 	private final static Logger log = Logger.getLogger(SocketServer.class.getName());
 	private static final int port = 9991;
 
@@ -24,8 +23,8 @@ public class SocketServer {
 	public void launch(int port) {
 		try {
 			serverSocket = new ServerSocket(port);
+
 			log.info("Waiting for clients...");
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
@@ -43,7 +42,7 @@ public class SocketServer {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			if(serverSocket != null) {
 				try {
 					serverSocket.close();
@@ -56,27 +55,20 @@ public class SocketServer {
 	
 	public String readLogin() {
 		String userLogin = null;
+
 		try {
 			BufferedReader userMsg = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			userLogin = userMsg.readLine();
 		} catch (IOException e) {
 			e.printStackTrace();
-			
 		}
 		return userLogin;
 	}
 	
-	
-	
 	public static void main(String[] args) {
 		SocketServer socketServer = new SocketServer();
+
 		socketServer.launch(port);
 		socketServer.connectClients();
-		
 	}
-	
-	//public void addConnection(String username, Socket connection) {
-		//connections.put(username, connection);
-	//}
-	
 }

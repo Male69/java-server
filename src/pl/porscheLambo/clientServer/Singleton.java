@@ -6,14 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-  class Singleton {
+class Singleton {
 	
 	private HashMap<String, Socket> connections = new HashMap<String , Socket>();
 	private static final Singleton instance = new Singleton();  
-	
-	private Singleton() {
-		
-	}
 	
 	public static Singleton getInstance() {
 		return instance;
@@ -29,26 +25,31 @@ import java.util.Map.Entry;
 	
 	public String getUsernameBySocket(Socket socket) {
 		String username = null;
+
 		for (Entry<String, Socket> elem : connections.entrySet()) {
 			if(elem.getValue().equals(socket)) {
 				username = elem.getKey();
 				break;
 			}
 		}
+
 		return username;
 	}
 	public List<Socket> getAllSockets() {
 		List<Socket> temp = new ArrayList<Socket>();
+
 		for (Socket elem : connections.values()) {
 			temp.add(elem);
 		}
+
 		return temp;
 	}
 	
 	public List<String> getAllUsernames() {
 		List<String> result = new ArrayList<String>();
+
 		for (Entry<String, Socket> elem : connections.entrySet()) {
-				result.add(elem.getKey()); 
+			result.add(elem.getKey()); 
 		}
 		
 		return result;
