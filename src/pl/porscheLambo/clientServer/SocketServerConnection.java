@@ -54,7 +54,7 @@ public class SocketServerConnection implements Runnable {
 					
 				}else {
 					username = firstPartMsg;
-					message = Singleton.getInstance().getUsernameBySocket(connection) + secondPartMsg;
+					message = Singleton.getInstance().getUsernameBySocket(connection) + ":" + secondPartMsg;
 				}
 				//log.info("Message from the " + username+ " with local address " + connection.getLocalAddress() + ": " + message);
 			}
