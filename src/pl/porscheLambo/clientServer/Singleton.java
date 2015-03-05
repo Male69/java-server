@@ -23,6 +23,14 @@ class Singleton {
 		return connections.get(username);
 	}
 	
+	public HashMap<String, Socket> getConnections() {
+		return connections;
+	}
+
+	public void setConnections(HashMap<String, Socket> connections) {
+		this.connections = connections;
+	}
+
 	public String getUsernameBySocket(Socket socket) {
 		String username = null;
 

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ public class SocketServerConnection implements Runnable {
 	private String firstPartMsg;
 	private String secondPartMsg;
 	private String sender;
+	private boolean stopLoop;
 	
 	public SocketServerConnection(Socket connection, String username) {
 		this.connection = connection;
@@ -31,10 +33,16 @@ public class SocketServerConnection implements Runnable {
 	}
 
 	@Override
-	public void run() {		
+	public void run() {
+		stopLoop = false;
 		while(true) {
-			readRequest();
-			sendResponse();
+			if(stopLoop == false) {
+				readRequest();
+				sendResponse();
+			} else {
+				break;
+			}
+			
 		}
 	}
 	
@@ -50,6 +58,11 @@ public class SocketServerConnection implements Runnable {
 					connections  = new ArrayList<String>();
 					connections = Singleton.getInstance().getAllUsernames();
 					message = sendConnections(connections);
+				
+				}else if(secondPartMsg.equals("exit")) {
+					log.info("wchodze w warunek exita");
+					username = firstPartMsg;
+					message = "Connection is closed";
 					
 				} else {
 					username = firstPartMsg;
@@ -67,26 +80,34 @@ public class SocketServerConnection implements Runnable {
 		String[] messageParts = message.split(":");
 
 		firstPartMsg = messageParts[0];
-		if(!messageParts[0].equals("connections")) {
+		if(!messageParts[0].equals("connections") ) {
 			secondPartMsg = messageParts[1];
 		}
-		
 		log.info("First part of the msg" + firstPartMsg);
 	}
 	
 	public void sendResponse() {
 		if(message != null) {
 			log.info(message);
+				try {
+					serverMsg = new BufferedWriter(new OutputStreamWriter(Singleton.getInstance().getUserSocket(username).getOutputStream()));
 
-			try {
-				serverMsg = new BufferedWriter(new OutputStreamWriter(Singleton.getInstance().getUserSocket(username).getOutputStream()));
-
-				serverMsg.write(message);
-				serverMsg.newLine();
-				serverMsg.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
+					serverMsg.write(message);
+					serverMsg.newLine();
+					serverMsg.flush();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			if(message.equals("Connection is closed")) {
+				try {
+					Singleton.getInstance().getUserSocket(username).close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				Singleton.getInstance().getConnections().remove(username);
+				stopLoop = true;
 			}
+			//}
 		}
 	}
 	

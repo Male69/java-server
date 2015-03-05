@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class SocketServer {
 
 	private final static Logger log = Logger.getLogger(SocketServer.class.getName());
-	private static final int port = 9991;
+	private static final int port = 9992;
 
 	private Socket connection;
 	private ServerSocket serverSocket;
