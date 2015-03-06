@@ -38,7 +38,10 @@ public class SocketServer {
 				Singleton.getInstance().addConnection(username, connection);
 				log.info("User: "  + username + "has logged in");
 				
-				new Thread(new SocketServerConnection(connection, username)).start();
+				Thread thread = new Thread(new SocketServerConnection(connection, username));
+				thread.start();
+				SocketServerThreadHandler socketServerThreadHandler = new SocketServerThreadHandler();
+				socketServerThreadHandler.addThread(username, thread);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

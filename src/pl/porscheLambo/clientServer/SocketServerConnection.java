@@ -25,7 +25,7 @@ public class SocketServerConnection implements Runnable {
 	private String firstPartMsg;
 	private String secondPartMsg;
 	private String sender;
-	private boolean stopLoop;
+	private boolean stopThread;
 	
 	public SocketServerConnection(Socket connection, String username) {
 		this.connection = connection;
@@ -34,16 +34,21 @@ public class SocketServerConnection implements Runnable {
 
 	@Override
 	public void run() {
-		stopLoop = false;
-		while(true) {
-			if(stopLoop == false) {
+		stopThread = false;
+		while(stopThread == false) {
 				readRequest();
 				sendResponse();
-			} else {
-				break;
-			}
 			
 		}
+		try {
+			Singleton.getInstance().getUserSocket(username).close();
+			SocketServerThreadHandler.getThreads().get(username).join(4000);
+			SocketServerThreadHandler.getThreads().remove(username);
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+		log.info("Connection with " + username + " is closed");
+		Singleton.getInstance().getConnections().remove(username);
 	}
 	
 	public String readRequest() {
@@ -88,7 +93,7 @@ public class SocketServerConnection implements Runnable {
 	
 	public void sendResponse() {
 		if(message != null) {
-			log.info(message);
+			//log.info(message);
 				try {
 					serverMsg = new BufferedWriter(new OutputStreamWriter(Singleton.getInstance().getUserSocket(username).getOutputStream()));
 
@@ -99,13 +104,9 @@ public class SocketServerConnection implements Runnable {
 					e.printStackTrace();
 				}
 			if(message.equals("Connection is closed")) {
-				try {
-					Singleton.getInstance().getUserSocket(username).close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				Singleton.getInstance().getConnections().remove(username);
-				stopLoop = true;
+				
+				stopThread = true;
+				
 			}
 			//}
 		}
