@@ -23,7 +23,7 @@ class Singleton {
 		return connections.get(username);
 	}
 	
-	public HashMap<String, Socket> getConnections() {
+	public synchronized HashMap<String, Socket> getConnections() {
 		return connections;
 	}
 
