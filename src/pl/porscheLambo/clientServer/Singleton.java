@@ -62,4 +62,8 @@ class Singleton {
 		
 		return result;
 	}
+	
+	public void removeConnection(String username) {
+		connections.remove(username);
+	}
 }

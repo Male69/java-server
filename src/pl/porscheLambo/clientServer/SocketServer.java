@@ -36,7 +36,7 @@ public class SocketServer {
 				connection = serverSocket.accept();
 				username = readLogin();
 				Singleton.getInstance().addConnection(username, connection);
-				log.info("User: "  + username + "has logged in");
+				log.info("User: "  + username + " has logged in");
 				
 				Thread thread = new Thread(new SocketServerConnection(connection, username));
 				thread.start();

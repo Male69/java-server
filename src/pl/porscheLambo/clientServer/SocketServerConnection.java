@@ -4,13 +4,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 public class SocketServerConnection implements Runnable {
@@ -24,7 +22,6 @@ public class SocketServerConnection implements Runnable {
 	private List<String> connections;
 	private String firstPartMsg;
 	private String secondPartMsg;
-	private String sender;
 	private boolean stopThread;
 	
 	public SocketServerConnection(Socket connection, String username) {
@@ -35,20 +32,22 @@ public class SocketServerConnection implements Runnable {
 	@Override
 	public void run() {
 		stopThread = false;
+		sendAllConnections();
 		while(stopThread == false) {
 				readRequest();
-				sendResponse();
-			
+				sendResponse();			
 		}
 		try {
-			Singleton.getInstance().getUserSocket(username).close();
+			Singleton.getInstance().getUserSocket(username).close();	
+			Singleton.getInstance().removeConnection(username);
 			SocketServerThreadHandler.getThreads().get(username).join(4000);
 			SocketServerThreadHandler.getThreads().remove(username);
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException | InterruptedException  e) {
 			e.printStackTrace();
 		}
 		log.info("Connection with " + username + " is closed");
 		Singleton.getInstance().getConnections().remove(username);
+		sendAllConnections();
 	}
 	
 	public String readRequest() {
@@ -59,12 +58,7 @@ public class SocketServerConnection implements Runnable {
 				message = userMsg.readLine();
 				log.info(message);
 				splitter(message);
-				if(firstPartMsg.equals("connections")) {
-					connections  = new ArrayList<String>();
-					connections = Singleton.getInstance().getAllUsernames();
-					message = sendConnections(connections);
-				
-				}else if(secondPartMsg.equals("exit")) {
+				if(secondPartMsg.equals("exit")) {
 					log.info("wchodze w warunek exita");
 					username = firstPartMsg;
 					message = "Connection is closed";
@@ -93,30 +87,48 @@ public class SocketServerConnection implements Runnable {
 	
 	public void sendResponse() {
 		if(message != null) {
-			//log.info(message);
 				try {
+					log.info("KONCZE POLACZENIE");
 					serverMsg = new BufferedWriter(new OutputStreamWriter(Singleton.getInstance().getUserSocket(username).getOutputStream()));
-
 					serverMsg.write(message);
 					serverMsg.newLine();
 					serverMsg.flush();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				
 			if(message.equals("Connection is closed")) {
-				
-				stopThread = true;
-				
+				stopThread = true;			
 			}
-			//}
 		}
 	}
 	
 	public String sendConnections(List<String> connections) {
 		String result = "connections:" + String.join(":", connections);
-		
 		log.info(result);
-
+		
 		return result;
 	}
+	
+	 public void sendAllConnections() {
+         String message = null;
+         if(Singleton.getInstance().getConnections().size() != 0 ) {
+             for (String string : Singleton.getInstance().getAllUsernames()) {
+                 message += string + ":";
+             }
+             StringBuilder stringBuilder = new StringBuilder(message);
+             message = stringBuilder.delete(message.lastIndexOf(message), 4).toString();
+             message = stringBuilder.deleteCharAt(message.length()-1).toString();
+             for (Socket socket : Singleton.getInstance().getAllSockets() ) {
+                 try {
+                	 BufferedWriter serverMsg = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                     serverMsg.write("connections:" + message);
+                     serverMsg.newLine();
+                     serverMsg.flush();
+                 } catch (IOException e) {
+                         e.printStackTrace();
+                 }
+             }
+         }
+	 }
 }
